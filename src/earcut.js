@@ -8,10 +8,10 @@ function earcut(points) {
 
     if (points.length > 1) outerNode = eliminateHoles(points, outerNode);
 
-    var triangles = [];
-    if (outerNode) earcutLinked(outerNode, triangles);
+    var result = {vertices: [], indexes: []};
+    if (outerNode) earcutLinked(outerNode, result);
 
-    return triangles;
+    return result;
 }
 
 // create a circular doubly linked list from polygon points in the specified winding order
@@ -58,7 +58,7 @@ function filterPoints(start) {
     return start;
 }
 
-function earcutLinked(ear, triangles, secondPass) {
+function earcutLinked(ear, result, secondPass) {
     ear = filterPoints(ear);
     if (!ear) return;
 
@@ -71,7 +71,9 @@ function earcutLinked(ear, triangles, secondPass) {
         next = ear.next;
 
         if (isEar(ear)) {
-            triangles.push(prev.p, ear.p, next.p);
+            addVertice(result, prev);
+            addVertice(result, ear);
+            addVertice(result, next);
 
             next.prev = prev;
             prev.next = next;
@@ -86,12 +88,23 @@ function earcutLinked(ear, triangles, secondPass) {
 
         if (ear === stop) {
             // if we can't find any more ears, try filtering points and cutting again
-            if (!secondPass) earcutLinked(ear, triangles, true);
+            if (!secondPass) earcutLinked(ear, result, true);
             // if this didn't work, try splitting the remaining polygon into two
-            else splitEarcut(ear, triangles);
+            else splitEarcut(ear, result);
             break;
         }
     }
+}
+
+function addVertice(result, node) {
+    node = node.source || node;
+    var i = node.index;
+    if (i === null) {
+        var vertices = result.vertices;
+        node.index = i = vertices.length;
+        vertices.push(node.p[0], node.p[1]);
+    }
+    result.indexes.push(i);
 }
 
 function isEar(ear) {
@@ -138,7 +151,7 @@ function isEar(ear) {
     return true;
 }
 
-function splitEarcut(start, triangles) {
+function splitEarcut(start, result) {
     // find a valid diagonal that divides the polygon into two
     var a = start;
     do {
@@ -149,8 +162,8 @@ function splitEarcut(start, triangles) {
                 var c = splitPolygon(a, b);
 
                 // run earcut on each half
-                earcutLinked(a, triangles);
-                earcutLinked(c, triangles);
+                earcutLinked(a, result);
+                earcutLinked(c, result);
                 return;
             }
             b = b.next;
@@ -331,8 +344,8 @@ function compareX(a, b) {
 
 // split the polygon vertices circular doubly-linked linked list into two
 function splitPolygon(a, b) {
-    var a2 = {p: a.p, prev: null, next: null},
-        b2 = {p: b.p, prev: null, next: null},
+    var a2 = {p: a.p, prev: null, next: null, index: null, source: a},
+        b2 = {p: b.p, prev: null, next: null, index: null, source: b},
         an = a.next,
         bp = b.prev;
 
@@ -355,7 +368,9 @@ function insertNode(point, last) {
     var node = {
         p: point,
         prev: null,
-        next: null
+        next: null,
+        index: null,
+        source: null
     };
 
     if (!last) {
