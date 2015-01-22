@@ -8,7 +8,7 @@ function earcut(points) {
 
     if (points.length > 1) outerNode = eliminateHoles(points, outerNode);
 
-    var result = {vertices: [], indexes: []};
+    var result = {vertices: [], indices: []};
     if (outerNode) earcutLinked(outerNode, result);
 
     return result;
@@ -71,9 +71,9 @@ function earcutLinked(ear, result, secondPass) {
         next = ear.next;
 
         if (isEar(ear)) {
-            addVertice(result, prev);
-            addVertice(result, ear);
-            addVertice(result, next);
+            addVertex(result, prev);
+            addVertex(result, ear);
+            addVertex(result, next);
 
             next.prev = prev;
             prev.next = next;
@@ -96,7 +96,7 @@ function earcutLinked(ear, result, secondPass) {
     }
 }
 
-function addVertice(result, node) {
+function addVertex(result, node) {
     node = node.source || node;
     var i = node.index;
     if (i === null) {
@@ -104,7 +104,7 @@ function addVertice(result, node) {
         node.index = i = vertices.length;
         vertices.push(node.p[0], node.p[1]);
     }
-    result.indexes.push(i);
+    result.indices.push(i);
 }
 
 function isEar(ear) {

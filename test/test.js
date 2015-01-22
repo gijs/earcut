@@ -23,15 +23,15 @@ function areaTest(filename, expectedDeviation) {
         var data = JSON.parse(fs.readFileSync(__dirname + '/fixtures/' + filename + '.json')),
             result = earcut(data),
             vertices = result.vertices,
-            indexes = result.indexes,
+            indices = result.indices,
             expectedArea = polygonArea(data),
             area = 0;
 
-        for (var i = 0; i < indexes.length; i += 3) {
+        for (var i = 0; i < indices.length; i += 3) {
             area += triangleArea(
-                [vertices[indexes[i]], vertices[indexes[i] + 1]],
-                [vertices[indexes[i + 1]], vertices[indexes[i + 1] + 1]],
-                [vertices[indexes[i + 2]], vertices[indexes[i + 2] + 1]]);
+                [vertices[indices[i]], vertices[indices[i] + 1]],
+                [vertices[indices[i + 1]], vertices[indices[i + 1] + 1]],
+                [vertices[indices[i + 2]], vertices[indices[i + 2] + 1]]);
         }
 
         var deviation = expectedArea === 0 && area === 0 ? 0 : Math.abs(area - expectedArea) / expectedArea;
